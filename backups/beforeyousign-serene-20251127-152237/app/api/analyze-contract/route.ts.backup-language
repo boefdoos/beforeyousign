@@ -1,0 +1,496 @@
+import { NextRequest, NextResponse } from 'next/server'
+import Anthropic from '@anthropic-ai/sdk'
+
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY || '',
+})
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
+// Expert music industry knowledge based on Belgian/EU standards
+// Sources: VI.BE, PlayRight, Cultuurloket, Amplo, Beroepkunstenaar.nl
+const MUSIC_INDUSTRY_KNOWLEDGE = `
+CRITICAL: Use Belgian/EU music industry standards for evaluation.
+Sources: VI.BE, PlayRight, Cultuurloket, Amplo, industry practice Belgium/Benelux
+
+=== BOOKING AGREEMENTS (Optreden / Live Performance) ===
+
+COMMISSIE STRUCTURE - CRITICAL:
+✓ Standard commission: 10-15% 
+✓ IMPORTANT: Commission is paid ON TOP of artist fee by promoter/venue
+✓ Artist receives full agreed fee (e.g. €1000)
+✓ Promoter pays: artist fee (€1000) + agency commission (€100-150)
+✓ Total cost for venue/promoter: €1100-1150
+
+✗ RED FLAG: Commission deducted FROM artist fee (should come on top!)
+✗ RED FLAG: Commission > 20% (extremely high, only justified with extensive services)
+✗ RED FLAG: Hidden fees beyond standard commission
+
+BE CAREFUL: Do NOT flag 10-15% as "high" - this is STANDARD practice!
+Only flag as problematic if:
+- Commission comes OFF the artist fee instead of ON TOP
+- Commission > 20%
+- Unclear who pays the commission
+
+EXCLUSIVITY:
+✓ Reasonable: Specific region during event period (e.g. "No other shows within 50km for 2 weeks")
+✓ Reasonable: Genre-specific (e.g. "No other jazz festivals in Belgium that month")
+✗ RED FLAG: Blanket exclusivity without geographic/time limits
+✗ RED FLAG: Exclusivity > 6 months in same market
+
+PAYMENT & SETTLEMENT:
+✓ Clear payment terms (e.g. 50% advance, 50% on performance night)
+✓ Payment within 30 days after performance
+✗ RED FLAG: No payment guarantees
+✗ RED FLAG: Payment only after "recoupment" of costs
+
+CANCELLATION:
+✓ Must include force majeure clause (illness, natural disaster, etc.)
+✓ Reasonable cancellation fees (e.g. 50% if < 4 weeks notice)
+✗ RED FLAG: No cancellation clause or unreasonable penalties
+
+TECHNICAL RIDER:
+✓ Artist can specify technical requirements (backline, sound, lights)
+✓ Reasonable requests for artist level
+✗ RED FLAG: Venue can change technical specs unilaterally
+
+
+=== MANAGEMENT AGREEMENTS (Artist Manager) ===
+
+Based on VI.BE, industry practice Belgium/NL
+
+COMMISSIE:
+✓ Standard: 15-20% of GROSS income
+✓ Starting manager: 10-15% (proving their value)
+✓ Established manager with full services: 20% is normal
+✗ RED FLAG: > 25% without exceptional justification
+✗ RED FLAG: Commission on income where manager had no active role
+
+IMPORTANT NUANCES:
+- Beginning artists with new manager: 10-15% is fair
+- Established relationship with proven results: 15-20% is normal
+- Commission typically on gross, but can be negotiated on net after costs
+- Be specific: commission on what? (Live, recording, publishing, merch, sync?)
+
+DURATION:
+✓ Reasonable: 1-3 years with option to extend
+✓ Trial period: 6-12 months without long commitment
+✗ RED FLAG: > 5 years without exit clause
+✗ RED FLAG: Automatic renewal without opt-out period
+
+EXIT CLAUSES:
+✓ Must be possible to exit with reasonable notice (1-3 months)
+✓ Underperformance clause (if targets not met, artist can exit)
+✓ Sunset clause: What happens AFTER contract ends? (commission on deals made during contract)
+✗ RED FLAG: No exit possibility during contract term
+✗ RED FLAG: Commission continues indefinitely after termination
+
+SCOPE:
+✓ Clear definition: What does manager do? (bookings, promo, negotiations, etc.)
+✓ Key man clause: What if your contact person leaves the agency?
+✗ RED FLAG: Vague responsibilities
+✗ RED FLAG: Manager can sign contracts on artist's behalf without consent
+
+COMMISSION ON PUBLISHING:
+⚠️ SENSITIVE: Publishing rights are artist's most valuable asset
+✓ If manager actively works on publishing deals: 10-15% is acceptable
+✗ RED FLAG: Manager claims publishing % without active involvement
+✗ RED FLAG: > 20% of publishing income
+
+
+=== LABEL DEALS (Recording Contracts) ===
+
+Based on VI.BE artiestencontract documentation
+
+ARTIST DEAL (Full Recording Contract):
+✓ Royalty rates: 
+  - Indie label: 50/50 split POST-recoupment is fair
+  - Better deal: 60/40 or 70/30 (artist/label)
+  - Digital: Often higher rate (artist should get 60-70%)
+✗ RED FLAG: Artist gets < 50% post-recoupment
+✗ RED FLAG: No distinction between physical and digital rates
+
+LICENSE DEAL:
+✓ Artist finances recording, label handles release
+✓ Label takes 70-75% of revenue (they pay pressing, distribution, promo)
+✓ Artist retains master ownership
+✗ RED FLAG: Label takes > 80%
+✗ RED FLAG: Label claims master ownership in license deal
+
+JOINT VENTURE:
+✓ Equal investment, equal profit split (50/50)
+✓ Artist and label share costs and revenues equally
+✗ RED FLAG: Unequal split despite equal investment claims
+
+DISTRIBUTION DEAL:
+✓ Commission: 15-30% depending on services
+✓ Artist retains: Masters, creative control, all other rights
+✗ RED FLAG: > 35% commission for pure distribution
+✗ RED FLAG: Distributor wants master ownership
+
+ADVANCE:
+✓ Recoupable: Yes (label recoups from artist royalties)
+✓ Repayable: NO - Artist keeps advance even if record fails
+✗ RED FLAG: "Repayable" advance (must pay back from personal funds)
+✗ RED FLAG: Advance must be repaid before ANY royalties
+
+RECOUPMENT:
+✓ Advance is recouped from artist's royalty share only
+✓ Clear accounting: Artist can verify expenses
+✗ RED FLAG: Cross-collateralization (Album 1 debt affects Album 2 earnings)
+✗ RED FLAG: Unclear what costs are recoupable
+
+MASTER OWNERSHIP:
+✓ Reversion to artist after X years (typically 7-15 years)
+✓ Or: Artist retains ownership from start (license/distribution deals)
+✗ RED FLAG: Label keeps masters "in perpetuity" without reversion
+✗ RED FLAG: "Throughout the universe in perpetuity" clauses
+
+DURATION & OPTIONS:
+✓ 1-2 albums + option, or max 3-4 years
+✓ Label has option, not obligation (protects artist if things don't work)
+✗ RED FLAG: > 5 years or > 3 albums without exit
+✗ RED FLAG: Automatic obligation for multiple albums
+
+CREATIVE CONTROL:
+✓ Artist retains: Artistic direction, final say on releases, artwork
+✓ Artist approves: Single choices, marketing campaigns
+✗ RED FLAG: Label decides everything (artwork, tracklist, release timing)
+✗ RED FLAG: No approval rights for artist
+
+RE-RECORDING RESTRICTION:
+⚠️ COMMON: "You can't re-record these songs for X years with another label"
+✓ Reasonable: 2-5 years after contract ends
+✗ RED FLAG: > 7 years re-recording restriction
+✗ RED FLAG: Permanent restriction
+
+360 DEALS:
+Only acceptable if label ACTIVELY works on all revenue streams
+
+✓ OK if: Label provides active booking, tour support, merch production
+✓ Commission on side revenue: 10-20% IF they actively work on it
+✗ RED FLAG: Label takes % of live/merch WITHOUT providing services
+✗ RED FLAG: > 25% of side revenue
+✗ RED FLAG: Commission on non-music income (acting, endorsements)
+
+
+=== PUBLISHING DEALS (Songwriting / Composition Rights) ===
+
+BE CAREFUL: Publishing = songwriter rights, most valuable asset!
+
+ADMINISTRATION DEAL (Best for artist):
+✓ Publisher manages rights for 10-20% commission
+✓ Artist retains 100% copyright ownership
+✓ This is the PREFERRED option for most artists
+
+CO-PUBLISHING:
+✓ 50/50 split of publishing income
+✓ Copyright shared between artist and publisher
+✓ Reasonable IF publisher actively exploits catalog
+
+FULL PUBLISHING DEAL:
+✓ ONLY acceptable with substantial advance (€25,000+)
+✓ Publisher gets 100% publisher's share
+✗ RED FLAG: Giving 100% publishing without major advance
+✗ RED FLAG: "Work for hire" (you don't own your songs)
+
+DURATION:
+✓ Admin deal: 3-5 years
+✓ Co-publishing: 5-10 years with reversion
+✗ RED FLAG: Perpetuity without reversion
+✗ RED FLAG: > 15 years on co-pub or full pub without reversion
+
+
+=== CONTRACT DURATION (General Principles) ===
+
+✓ Booking agreement: Per show or season (3-12 months)
+✓ Management: 1-3 years with exit clauses
+✓ Label: 1-2 albums + option, or 3-4 years maximum
+✓ Publishing admin: 3-5 years
+✗ RED FLAG: > 5 years on ANY deal without exit clause
+✗ RED FLAG: Automatic renewal without explicit opt-in
+
+
+=== EXCLUSIVITY CLAUSES ===
+
+✓ Reasonable: Limited by genre, geography, duration
+✓ Example: "No other electronic music festivals in Belgium for 6 weeks"
+✗ RED FLAG: Worldwide exclusivity across all genres
+✗ RED FLAG: > 3 years broad exclusivity
+✗ RED FLAG: Cannot release music independently
+
+
+=== ACCOUNTING & TRANSPARENCY ===
+
+✓ Quarterly or semi-annual royalty statements
+✓ Right to audit label's books (at artist's expense)
+✓ Clear breakdown of income and deductible costs
+✗ RED FLAG: Annual statements only or no statements
+✗ RED FLAG: No audit rights
+✗ RED FLAG: Vague cost definitions
+
+
+=== KEY EVALUATION PRINCIPLES ===
+
+1. CONTEXT MATTERS:
+   - A 15% management commission is NORMAL, not "high"
+   - A 10% booking commission is STANDARD, not something to negotiate down
+   - 50/50 label split post-recoupment is FAIR for indie label
+   
+2. WHO PAYS WHAT:
+   - Booking commission: Paid by VENUE/PROMOTER on top of artist fee
+   - Management commission: Paid by ARTIST from their income
+   - Label costs: Recoupable from artist royalties (but not repayable)
+
+3. CAREER STAGE:
+   - Beginning artist: Lower percentages reasonable while proving value
+   - Established artist: Standard rates expected
+   - Superstar: Can negotiate better terms
+
+4. BELGIAN/EU SPECIFICS:
+   - Handelsagentuurwet protects booking agents (1 month notice, compensation)
+   - SABAM & PlayRight: Separate from label deals
+   - Kunstenaarstatuut: Special tax/social status for artists
+
+5. RED FLAGS vs NEGOTIATION POINTS:
+   - RED FLAG: Deal breaker, walk away or heavily negotiate
+   - MEDIUM: Point of attention, ask for clarification
+   - LOW: Note it but may be acceptable with context
+
+6. DON'T OVER-FLAG:
+   - Only use "critical" for absolute dealbreakers
+   - Many standard clauses are protective for both parties
+   - Focus on genuinely problematic terms
+
+
+=== SOURCES & VERIFICATION ===
+
+All standards based on:
+- VI.BE (Vlaams Instituut voor de Bewaarnemende en Uitvoerende Kunsten)
+- Cultuurloket België
+- PlayRight (naburige rechten)
+- Amplo
+- Belgian/Benelux music industry practice
+- Handelsagentuurwetgeving België
+
+Last updated: October 2025
+`;
+
+export async function POST(request: NextRequest) {
+  try {
+    const formData = await request.formData()
+    const file = formData.get('contract') as File
+    
+    if (!file) {
+      return NextResponse.json({ error: 'No file uploaded' }, { status: 400 })
+    }
+
+    console.log('📄 Processing file:', file.name, `(${(file.size / 1024).toFixed(2)} KB)`)
+
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
+    const base64 = buffer.toString('base64')
+
+    console.log('🚀 Sending to Anthropic...')
+
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 4000,
+      messages: [{
+        role: 'user',
+        content: [{
+          type: 'document',
+          source: {
+            type: 'base64',
+            media_type: 'application/pdf',
+            data: base64,
+          },
+        }, {
+          type: 'text',
+          text: `${MUSIC_INDUSTRY_KNOWLEDGE}
+
+
+CRITICAL: LOGIC CHECK BEFORE FLAGGING ANYTHING
+
+Before marking something as a red flag, ask yourself:
+1. WHO has the power/control according to the quote?
+   - If quote says "Artist has exclusive rights to approve X" → This PROTECTS the artist (POSITIVE)
+   - If quote says "Promoter may decide X without artist consent" → This HURTS the artist (NEGATIVE)
+
+2. Does my conclusion MATCH the quote?
+   - Quote: "Artist shall have exclusive rights to approve support acts"
+   - CORRECT: "✓ Positive: Artist retains approval rights over support acts"
+   - WRONG: "✗ Red flag: Promoter has control over support acts" ← This contradicts the quote!
+
+3. Is this actually problematic?
+   - Standard practice is NOT a problem
+   - Artist having rights is GOOD, not bad
+   - Only flag genuinely unfair terms
+
+EXAMPLES OF COMMON MISTAKES TO AVOID:
+
+CRITICAL: NEVER HALLUCINATE OR INVENT FACTS
+
+❌ DO NOT mention specific company names as examples (e.g. "agencies like X or Y")
+❌ DO NOT invent statistics or percentages unless they are in the contract
+❌ DO NOT reference specific court cases or legal precedents
+❌ DO NOT make up names of organizations, venues, or industry players
+
+✓ DO reference general industry standards ("Belgian booking agencies typically...")
+✓ DO cite official sources already mentioned in knowledge base (VI.BE, PlayRight, Cultuurloket)
+✓ DO use "established Belgian agencies" without naming specific companies
+✓ DO say "I cannot verify specific examples" if unsure
+
+If you do not know something for certain, DO NOT make it up. Say "This should be verified with industry sources" instead.
+
+❌ Quote says artist has rights → Analysis says promoter has too much control
+✓ Quote says artist has rights → Analysis says this protects the artist
+
+❌ Quote says "reasonable notice required" → Analysis flags as vague
+✓ Quote says "reasonable notice required" → Analysis notes it is acceptable but could specify timeframe
+
+CRITICAL TASK:
+You are an experienced music industry lawyer with 15+ years representing artists in Belgium/EU.
+Analyze this contract using BELGIAN/EU industry standards from VI.BE, Cultuurloket, PlayRight.
+
+IMPORTANT PRINCIPLES:
+
+1. CONTEXT IS EVERYTHING
+   - 10-15% booking commission is STANDARD, NOT high
+   - Booking commission comes ON TOP of artist fee (promoter pays)
+   - 15-20% management commission is NORMAL
+   - 50/50 label split post-recoupment is FAIR for indie
+
+2. DON'T OVER-FLAG
+   - Only flag genuinely problematic terms
+   - Many "standard" clauses protect both parties
+   - "Standard practice" doesn't mean "unfair"
+
+3. BE SPECIFIC
+   - Quote actual contract language
+   - Explain WHY something is problematic
+   - Compare to Belgian/EU industry standards
+   - Consider artist's career stage
+
+SEVERITY LEVELS (use carefully):
+- "critical": Absolute dealbreaker (e.g. perpetual rights, repayable advance)
+- "high": Serious problem, must negotiate (e.g. no exit clause, commission > 25%)
+- "medium": Attention needed, clarify (e.g. vague terms, missing clauses)
+- "low": Notable but often acceptable (e.g. standard restrictions)
+
+WHAT TO CHECK:
+
+BOOKING CONTRACTS:
+✓ Does commission come ON TOP or OFF artist fee? (On top = correct!)
+✓ Is 10-15% commission? (Standard, don't flag)
+✓ Payment terms clear?
+✓ Force majeure clause?
+
+MANAGEMENT:
+✓ 15-20% commission? (Standard, don't flag)
+✓ Commission scope clear? (Live, recording, publishing?)
+✓ Exit clause present?
+✓ Duration reasonable (1-3 years)?
+
+LABEL:
+✓ Who owns masters? Reversion clause?
+✓ Royalty split post-recoupment? (50/50 minimum)
+✓ Advance recoupable or repayable? (Repayable = bad!)
+✓ Cross-collateralization?
+✓ Creative control?
+
+CRITICAL: Base your analysis on BELGIAN/EU standards, not US or UK standards!
+
+Provide analysis in this EXACT JSON format (no markdown, no code blocks):
+
+{
+  "overallScore": [1-10, where 7-8 is "good standard contract"],
+  "summary": "[2-3 sentences: contract type + overall fairness for Belgian/EU context]",
+  "contractType": "[booking/management/label/distribution/publishing/360/band/other]",
+  "careerStage": "[beginner/developing/established - based on contract terms]",
+  "redFlags": [
+    {
+      "category": "[Commission/Duration/Rights/Payment/Control/etc.]",
+      "severity": "[critical/high/medium/low]",
+      "issue": "[What's the problem? Be specific.]",
+      "explanation": "[WHY is this problematic? Compare to Belgian/EU standard. Consider context.]",
+      "quote": "[Relevant contract text, if available]",
+      "recommendation": "[What should artist do? Negotiate? Walk away? Get clarification?]"
+    }
+  ],
+  "positivePoints": [
+    "[Specific good aspects. WHY is this good? What's the standard it meets or exceeds?]"
+  ],
+  "recommendations": [
+    "[Concrete, actionable recommendations based on Belgian/EU practice]"
+  ],
+  "marketComparison": "[How does this compare to Belgian/EU market standard? Reference general Belgian/EU industry standards without naming specific companies.]",
+  "keyQuestions": [
+    "[Important questions artist should ask before signing]"
+  ]
+}
+
+REMEMBER:
+- Don't flag standard Belgian/EU practices as problems
+- Be nuanced: Consider career stage and context
+- Focus on GENUINELY problematic terms
+- Provide practical, actionable advice
+- Use Belgian/EU standards, not US/UK
+
+JSON only, no markdown, start with { and end with }.`
+        }]
+      }]
+    })
+
+    console.log('✅ Response received')
+
+    const responseText = message.content[0].type === 'text' ? message.content[0].text : ''
+    let cleanedResponse = responseText.trim()
+    
+    // Remove markdown code blocks if present
+    cleanedResponse = cleanedResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '')
+    
+    // Remove any leading/trailing whitespace
+    cleanedResponse = cleanedResponse.trim()
+    
+    const analysis = JSON.parse(cleanedResponse)
+
+    return NextResponse.json(analysis)
+  } catch (error: any) {
+    console.error('❌ ERROR:', error.type, error.status)
+    
+    if (error.status === 429 || error.type === 'rate_limit_error') {
+      const errorMsg = error.error?.message || error.message || ''
+      
+      if (errorMsg.includes('acceleration') || errorMsg.includes('increase rate')) {
+        return NextResponse.json(
+          { 
+            error: 'Rate limit: Too fast', 
+            message: 'Je uploadde te snel meerdere documenten. Anthropic limiteert hoe snel nieuwe accounts kunnen opschalen.',
+            details: '⏰ Wacht 5-10 minuten voor je het volgende document uploadt. Voor professioneel gebruik kun je hogere limieten aanvragen op console.anthropic.com/settings/limits'
+          },
+          { status: 429 }
+        )
+      }
+      
+      return NextResponse.json(
+        { 
+          error: 'Rate limit bereikt', 
+          message: 'Te veel aanvragen. Even geduld aub.',
+          details: 'Voor meer capaciteit kun je hogere limieten aanvragen op console.anthropic.com'
+        },
+        { status: 429 }
+      )
+    }
+
+    return NextResponse.json(
+      { 
+        error: 'Analyse fout', 
+        message: error.message || 'Onbekende fout',
+        details: 'Probeer het opnieuw of neem contact op met support.'
+      },
+      { status: 500 }
+    )
+  }
+}

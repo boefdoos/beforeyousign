@@ -1,0 +1,133 @@
+import { NextRequest, NextResponse } from 'next'
+import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
+
+const AI_PROVIDER = process.env.AI_PROVIDER || 'claude'
+
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY || '',
+})
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || '',
+})
+
+const ANALYSIS_PROMPT = \`Je bent een expert in muziekcontracten en naburige rechten in België/Vlaanderen.
+
+Analyseer dit contract grondig en geef een JSON response met:
+
+1. overallScore (0-10): Hoe gunstig is dit contract?
+2. summary: Korte samenvatting (2-3 zinnen)
+3. contractType: Label deal / Management / Booking etc.
+4. redFlags: Array met {severity, category, issue, explanation, recommendation}
+5. positivePoints: Array van sterke punten
+6. recommendations: Array van actiepunten
+7. marketComparison: Vergelijking met Belgische markt
+8. keyQuestions: Vragen voor de artiest
+
+BELANGRIJK:
+- Belgische/Vlaamse normen (niet US/UK)
+- 15% booking fee is NORMAAL in België (bovenop artist fee)
+- PlayRight voor naburige rechten, SABAM voor auteursrechten
+- Wees specifiek en praktisch
+
+Antwoord ALLEEN in VALIDE JSON zonder markdown formatting.\`
+
+async function analyzeWithClaude(contractText: string) {
+  const message = await anthropic.messages.create({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 4000,
+    temperature: 0,
+    system: ANALYSIS_PROMPT,
+    messages: [{
+      role: 'user',
+      content: \`Analyseer dit contract:\n\n\${contractText}\`,
+    }],
+  })
+
+  const responseText = message.content[0].type === 'text' 
+    ? message.content[0].text 
+    : ''
+  
+  const cleanedResponse = responseText
+    .replace(/\`\`\`json\n?/g, '')
+    .replace(/\`\`\`\n?/g, '')
+    .trim()
+  
+  return JSON.parse(cleanedResponse)
+}
+
+async function analyzeWithOpenAI(contractText: string) {
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    temperature: 0,
+    response_format: { type: 'json_object' },
+    messages: [
+      { role: 'system', content: ANALYSIS_PROMPT },
+      { role: 'user', content: \`Analyseer dit contract:\n\n\${contractText}\` },
+    ],
+  })
+
+  const content = completion.choices[0].message.content || '{}'
+  return JSON.parse(content)
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const { contractText } = await request.json()
+
+    if (!contractText) {
+      return NextResponse.json(
+        { error: 'No contract text provided' },
+        { status: 400 }
+      )
+    }
+
+    console.log(\`Analyzing with \${AI_PROVIDER}...\`)
+
+    let analysis
+    if (AI_PROVIDER === 'openai') {
+      if (!process.env.OPENAI_API_KEY) {
+        return NextResponse.json(
+          { error: 'OpenAI API key not configured' },
+          { status: 500 }
+        )
+      }
+      analysis = await analyzeWithOpenAI(contractText)
+    } else {
+      if (!process.env.ANTHROPIC_API_KEY) {
+        return NextResponse.json(
+          { error: 'Anthropic API key not configured' },
+          { status: 500 }
+        )
+      }
+      analysis = await analyzeWithClaude(contractText)
+    }
+
+    analysis.provider = AI_PROVIDER
+    analysis.timestamp = new Date().toISOString()
+
+    return NextResponse.json(analysis)
+  } catch (error: any) {
+    console.error('Analysis error:', error)
+    
+    if (error.message?.includes('API key')) {
+      return NextResponse.json(
+        { error: 'API key niet gevonden of ongeldig' },
+        { status: 401 }
+      )
+    }
+    
+    if (error.message?.includes('rate_limit')) {
+      return NextResponse.json(
+        { error: 'Rate limit bereikt. Wacht 1-2 minuten.' },
+        { status: 429 }
+      )
+    }
+
+    return NextResponse.json(
+      { error: error.message || 'Analysis failed' },
+      { status: 500 }
+    )
+  }
+}

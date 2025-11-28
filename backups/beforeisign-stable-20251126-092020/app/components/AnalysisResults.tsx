@@ -1,0 +1,318 @@
+'use client'
+
+import { useI18n } from './i18n-context'
+import PdfExportButton from './PdfExportButton'
+
+interface Props {
+  analysis: any
+  onReset: () => void
+}
+
+const getSeverityColor = (severity: string) => {
+  switch (severity) {
+    case 'critical': return 'bg-red-50 border-red-300 text-red-900'
+    case 'high': return 'bg-orange-50 border-orange-300 text-orange-900'
+    case 'medium': return 'bg-yellow-50 border-yellow-300 text-yellow-900'
+    case 'low': return 'bg-blue-50 border-blue-300 text-blue-900'
+    default: return 'bg-gray-50 border-gray-300 text-gray-800'
+  }
+}
+
+const getSeverityBadgeColor = (severity: string) => {
+  switch (severity) {
+    case 'critical': return 'bg-red-600 text-white'
+    case 'high': return 'bg-orange-600 text-white'
+    case 'medium': return 'bg-yellow-600 text-white'
+    case 'low': return 'bg-blue-600 text-white'
+    default: return 'bg-gray-600 text-white'
+  }
+}
+
+const SeverityIcon = ({ severity }: { severity: string }) => {
+  switch (severity) {
+    case 'critical':
+      return (
+        <svg className="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+        </svg>
+      )
+    case 'high':
+      return (
+        <svg className="w-8 h-8 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+        </svg>
+      )
+    case 'medium':
+      return (
+        <svg className="w-8 h-8 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+        </svg>
+      )
+    case 'low':
+      return (
+        <svg className="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+        </svg>
+      )
+    default:
+      return null
+  }
+}
+
+export default function AnalysisResults({ analysis, onReset }: Props) {
+  const { t, language } = useI18n()
+  
+  const score = analysis.overallScore
+  
+  
+  
+  
+  
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-white rounded-xl shadow-xl p-8 border-2 border-gray-100">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+              <svg className="w-7 h-7 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900">{t('results.title')}</h2>
+          </div>
+          
+          <div className="flex gap-3">
+            <PdfExportButton analysis={analysis} />
+            <button 
+              onClick={onReset} 
+              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold flex items-center gap-2 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              {t('results.newContract')}
+            </button>
+          </div>
+        </div>
+        
+        {/* Score & Type */}
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
+          <div className="bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-200 rounded-xl p-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 opacity-10">
+              <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+            </div>
+            
+            <p className="text-sm text-gray-600 font-medium mb-2">{t('results.overallScore')}</p>
+            <div className="flex items-end gap-3 mb-3">
+              <div className="text-5xl font-black text-orange-600">
+                {(score/10).toFixed(1)}
+              </div>
+              <div className="text-2xl text-gray-400 font-bold mb-1">/10</div>
+            </div>
+            
+            </div>
+
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl p-6">
+            <p className="text-sm text-gray-600 font-medium mb-2">{t('results.summary')}</p>
+            <p className="text-gray-800 leading-relaxed mb-4">{analysis.summary}</p>
+            
+            {analysis.contractType && (
+              <div className="mt-4">
+                <span className="inline-flex items-center gap-2 px-3 py-1 bg-blue-600 text-white rounded-lg text-sm font-semibold">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                  {analysis.contractType}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Red Flags */}
+
+      {/* Severity Summary */}
+      {analysis.redFlags && analysis.redFlags.length > 0 && (
+        <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-gray-100 mb-8">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">
+            {language === 'nl' ? 'Overzicht waarschuwingen' : 
+             language === 'fr' ? 'Aperçu des avertissements' : 
+             'Warnings Overview'}
+          </h3>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4 text-center">
+              <div className="text-3xl font-bold text-red-600">
+                {analysis.redFlags.filter((f: any) => f.severity === 'critical').length}
+              </div>
+              <div className="text-sm font-semibold text-red-800 mt-1">
+                {t('results.criticalIssues')}
+              </div>
+            </div>
+            <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-4 text-center">
+              <div className="text-3xl font-bold text-orange-600">
+                {analysis.redFlags.filter((f: any) => f.severity === 'warning').length}
+              </div>
+              <div className="text-sm font-semibold text-orange-800 mt-1">
+                {t('results.warnings')}
+              </div>
+            </div>
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center">
+              <div className="text-3xl font-bold text-blue-600">
+                {analysis.redFlags.filter((f: any) => f.severity === 'minor').length}
+              </div>
+              <div className="text-sm font-semibold text-blue-800 mt-1">
+                {t('results.minorIssues')}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {analysis.redFlags && analysis.redFlags.length > 0 && (
+        <div className="bg-white rounded-xl shadow-xl p-8 border-2 border-gray-100">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900">{t('results.redFlags')}</h3>
+          </div>
+          
+          <div className="space-y-4">
+            {analysis.redFlags.map((flag: any, index: number) => (
+              <div 
+                key={index} 
+                className={`${getSeverityColor(flag.severity)} border-2 rounded-xl p-5`}
+              >
+                <div className="flex items-start gap-4">
+                  <SeverityIcon severity={flag.severity} />
+                  
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <h4 className="font-bold text-lg">{flag.category}</h4>
+                      <span className={`${getSeverityBadgeColor(flag.severity)} px-3 py-1 rounded-full text-xs font-bold uppercase`}>
+                        {flag.severity}
+                      </span>
+                    </div>
+                    
+                    <p className="font-semibold mb-2">{flag.issue}</p>
+                    <p className="text-sm mb-3">{flag.explanation}</p>
+                    
+                    {flag.recommendation && (
+                      <div className="mt-3 p-3 bg-white rounded-lg border-l-4 border-orange-500">
+                        <p className="text-sm font-medium text-gray-700">
+                          <span className="font-bold text-orange-600">💡 {t('results.recommendation')}:</span> {flag.recommendation}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Positive Points */}
+      {analysis.positivePoints && analysis.positivePoints.length > 0 && (
+        <div className="bg-white rounded-xl shadow-xl p-8 border-2 border-gray-100">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900">{t('results.positivePoints')}</h3>
+          </div>
+          
+          <div className="space-y-3">
+            {analysis.positivePoints.map((point: string, index: number) => (
+              <div 
+                key={index}
+                className="flex items-start gap-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg"
+              >
+                <svg className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <p className="text-gray-800 font-medium">{point}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Recommendations */}
+      {analysis.recommendations && analysis.recommendations.length > 0 && (
+        <div className="bg-white rounded-xl shadow-xl p-8 border-2 border-gray-100">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900">{t('results.recommendations')}</h3>
+          </div>
+          
+          <div className="space-y-3">
+            {analysis.recommendations.map((rec: string, index: number) => (
+              <div 
+                key={index}
+                className="flex gap-3 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg"
+              >
+                <div className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">
+                  {index + 1}
+                </div>
+                <p className="text-gray-800 font-medium pt-1">{rec}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Market Comparison */}
+      {analysis.marketComparison && (
+        <div className="bg-white rounded-xl shadow-xl p-8 border-2 border-gray-100">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900">{t('results.marketComparison')}</h3>
+          </div>
+          <p className="text-gray-700 leading-relaxed">{analysis.marketComparison}</p>
+        </div>
+      )}
+
+      {/* Key Questions */}
+      {analysis.keyQuestions && analysis.keyQuestions.length > 0 && (
+        <div className="bg-white rounded-xl shadow-xl p-8 border-2 border-gray-100">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900">{t('results.keyQuestions')}</h3>
+          </div>
+          
+          <div className="space-y-3">
+            {analysis.keyQuestions.map((question: string, index: number) => (
+              <div 
+                key={index}
+                className="p-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg"
+              >
+                <p className="text-gray-800 font-medium">{question}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

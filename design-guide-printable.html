@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>beforeyousign.be Design Guide</title>
+  <style>
+    /* Print-optimized A4 format */
+    @page {
+      size: A4;
+      margin: 25mm;
+    }
+    
+    @media print {
+      body { margin: 0; }
+      .page-break { page-break-after: always; }
+      .no-print { display: none; }
+      
+      /* Force background colors for print */
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+    }
+    
+    /* Serene color palette */
+    :root {
+      --paper: #faf9f7;
+      --ink: #2d3436;
+      --ink-light: #636e72;
+      --accent: #6c7a89;
+      --accent-soft: #95a5a6;
+      --border: #e8e6e1;
+      --green-soft: #7fa99b;
+      --amber-soft: #d4a574;
+      --red-soft: #b85450;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 11pt;
+      line-height: 1.6;
+      color: var(--ink);
+      background: var(--paper);
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 25mm;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      color-adjust: exact;
+    }
+    
+    h1 {
+      font-size: 32pt;
+      font-weight: normal;
+      letter-spacing: -0.02em;
+      margin-bottom: 12pt;
+    }
+    
+    h2 {
+      font-size: 14pt;
+      font-weight: bold;
+      margin-top: 24pt;
+      margin-bottom: 8pt;
+    }
+    
+    h3 {
+      font-size: 9pt;
+      font-weight: normal;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--ink-light);
+      margin-top: 20pt;
+      margin-bottom: 10pt;
+    }
+    
+    p {
+      margin-bottom: 8pt;
+    }
+    
+    .subtitle {
+      font-size: 14pt;
+      color: var(--ink-light);
+      margin-bottom: 40pt;
+    }
+    
+    .meta {
+      font-size: 10pt;
+      font-style: italic;
+      color: var(--ink-light);
+      margin-top: 20pt;
+    }
+    
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 16pt 0;
+    }
+    
+    .swatch-grid {
+      display: grid;
+      gap: 16pt;
+      margin: 16pt 0;
+    }
+    
+    .swatch {
+      display: flex;
+      align-items: flex-start;
+      gap: 12pt;
+    }
+    
+    .swatch-box {
+      width: 40pt;
+      height: 40pt;
+      border-radius: 2pt;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      color-adjust: exact;
+    }
+    
+    .swatch-info h4 {
+      font-size: 11pt;
+      font-weight: bold;
+      margin-bottom: 2pt;
+    }
+    
+    .swatch-info .hex {
+      font-size: 10pt;
+      color: var(--accent);
+      font-family: 'Courier New', monospace;
+      margin-bottom: 4pt;
+    }
+    
+    .swatch-info .desc {
+      font-size: 9pt;
+      color: var(--ink-light);
+    }
+    
+    code {
+      font-family: 'Courier New', monospace;
+      font-size: 9pt;
+      color: var(--accent);
+      background: #f5f7f8;
+      padding: 2pt 4pt;
+      border-radius: 2pt;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    
+    .code-block {
+      background: #f5f7f8;
+      border: 1px solid var(--border);
+      border-radius: 2pt;
+      padding: 12pt;
+      margin: 12pt 0;
+      font-family: 'Courier New', monospace;
+      font-size: 9pt;
+      color: var(--accent);
+      white-space: pre-wrap;
+      line-height: 1.5;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    
+    .rule-list {
+      margin: 12pt 0;
+      padding-left: 0;
+      list-style: none;
+    }
+    
+    .rule-list li {
+      padding-left: 20pt;
+      margin-bottom: 6pt;
+      position: relative;
+    }
+    
+    .rule-list li:before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+    }
+    
+    .check-list {
+      list-style: none;
+      padding: 0;
+      margin: 12pt 0;
+    }
+    
+    .check-list li {
+      padding: 4pt 0;
+      font-size: 10pt;
+    }
+    
+    .check-list .good { color: var(--green-soft); }
+    .check-list .bad { color: var(--red-soft); }
+    
+    .example-box {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 2pt;
+      padding: 16pt;
+      margin: 16pt 0;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    
+    .example-box h4 {
+      font-size: 10pt;
+      font-weight: bold;
+      margin-bottom: 8pt;
+    }
+    
+    .size-example {
+      margin: 8pt 0;
+      display: flex;
+      align-items: baseline;
+      gap: 16pt;
+    }
+    
+    .size-example code {
+      width: 80pt;
+      display: inline-block;
+    }
+    
+    .size-example .size-value {
+      width: 40pt;
+      color: var(--ink);
+    }
+    
+    .size-example .size-use {
+      color: var(--ink-light);
+      font-size: 10pt;
+    }
+    
+    .print-button {
+      position: fixed;
+      top: 20pt;
+      right: 20pt;
+      padding: 12pt 24pt;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 2pt;
+      font-family: Georgia, serif;
+      font-size: 11pt;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .print-button:hover {
+      background: #5a6877;
+    }
+    
+    footer {
+      margin-top: 40pt;
+      padding-top: 16pt;
+      border-top: 1px solid var(--border);
+      font-size: 8pt;
+      color: var(--accent-soft);
+      font-style: italic;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<button class="print-button no-print" onclick="window.print()">Print als PDF</button>
+
+<div class="no-print" style="position: fixed; bottom: 20pt; right: 20pt; background: var(--accent); color: white; padding: 12pt; border-radius: 2pt; max-width: 300pt; font-size: 10pt;">
+  <strong>Print Tip:</strong> Zet in je browser print instellingen "Achtergrond graphics" AAN voor de mooiste kleuren!
+</div>
+
+<!-- Cover Page -->
+<div class="page-break">
+  <p class="meta">beforeyousign.be</p>
+  <h1>Design System</h1>
+  <p class="subtitle">Serene & Minimal</p>
+  
+  <hr class="divider">
+  
+  <p style="margin-top: 24pt;">
+    This guide documents the visual language and component patterns for beforeyousign.be. 
+    Follow these principles to maintain consistency across all tools in the platform.
+  </p>
+  
+  <p class="meta" style="margin-top: 40pt;">
+    Version 1.0<br>
+    November 2025
+  </p>
+</div>
+
+<!-- Core Principles -->
+<div class="page-break">
+  <h3>Core Principles</h3>
+  
+  <h2>The Feeling</h2>
+  <p>Think: A well-made book on your desk. Quiet, confident, always available when you need it.</p>
+  
+  <p style="margin-top: 16pt;">
+    <strong>NOT:</strong> Flashy SaaS dashboard, aggressive call-to-action, gamified experience<br>
+    <strong>YES:</strong> Calm tool, editorial quality, timeless aesthetic, professional but warm
+  </p>
+  
+  <h2>Three Rules</h2>
+  <ul class="rule-list">
+    <li><strong>Subtract, don't add</strong> — Remove before you embellish</li>
+    <li><strong>Whitespace is content</strong> — Generous margins create calm</li>
+    <li><strong>Serif = serious</strong> — Typography carries the mood</li>
+  </ul>
+</div>
+
+<!-- Color Palette -->
+<div class="page-break">
+  <h3>Color Palette</h3>
+  
+  <h2>Primary Colors</h2>
+  
+  <div class="swatch-grid">
+    <div class="swatch">
+      <div class="swatch-box" style="background: #faf9f7;"></div>
+      <div class="swatch-info">
+        <h4>Paper</h4>
+        <div class="hex">#faf9f7</div>
+        <div class="desc">Warm off-white — use for backgrounds</div>
+      </div>
+    </div>
+    
+    <div class="swatch">
+      <div class="swatch-box" style="background: #2d3436;"></div>
+      <div class="swatch-info">
+        <h4>Ink</h4>
+        <div class="hex">#2d3436</div>
+        <div class="desc">Soft black — use for body text</div>
+      </div>
+    </div>
+    
+    <div class="swatch">
+      <div class="swatch-box" style="background: #636e72;"></div>
+      <div class="swatch-info">
+        <h4>Ink Light</h4>
+        <div class="hex">#636e72</div>
+        <div class="desc">Medium gray — use for secondary text</div>
+      </div>
+    </div>
+    
+    <div class="swatch">
+      <div class="swatch-box" style="background: #6c7a89;"></div>
+      <div class="swatch-info">
+        <h4>Accent</h4>
+        <div class="hex">#6c7a89</div>
+        <div class="desc">Muted blue-gray — use for buttons & links</div>
+      </div>
+    </div>
+    
+    <div class="swatch">
+      <div class="swatch-box" style="background: #95a5a6;"></div>
+      <div class="swatch-info">
+        <h4>Accent Soft</h4>
+        <div class="hex">#95a5a6</div>
+        <div class="desc">Light gray — use for subtle elements</div>
+      </div>
+    </div>
+    
+    <div class="swatch">
+      <div class="swatch-box" style="background: #e8e6e1;"></div>
+      <div class="swatch-info">
+        <h4>Border</h4>
+        <div class="hex">#e8e6e1</div>
+        <div class="desc">Very light gray — use for dividers</div>
+      </div>
+    </div>
+  </div>
+  
+  <h2 style="margin-top: 24pt;">Semantic Colors</h2>
+  
+  <div class="swatch-grid">
+    <div class="swatch">
+      <div class="swatch-box" style="background: #7fa99b;"></div>
+      <div class="swatch-info">
+        <h4>Green Soft</h4>
+        <div class="hex">#7fa99b</div>
+        <div class="desc">Success / Positive actions</div>
+      </div>
+    </div>
+    
+    <div class="swatch">
+      <div class="swatch-box" style="background: #d4a574;"></div>
+      <div class="swatch-info">
+        <h4>Amber Soft</h4>
+        <div class="hex">#d4a574</div>
+        <div class="desc">Warning / Attention needed</div>
+      </div>
+    </div>
+    
+    <div class="swatch">
+      <div class="swatch-box" style="background: #b85450;"></div>
+      <div class="swatch-info">
+        <h4>Red Soft</h4>
+        <div class="hex">#b85450</div>
+        <div class="desc">Critical / Error states</div>
+      </div>
+    </div>
+  </div>
+  
+  <h2 style="margin-top: 24pt;">Usage Guidelines</h2>
+  <ul class="check-list">
+    <li class="good">✓ Use paper (#faf9f7) for all page backgrounds</li>
+    <li class="good">✓ Use ink (#2d3436) for primary text content</li>
+    <li class="good">✓ Use accent (#6c7a89) for interactive elements</li>
+    <li class="bad">✗ Never use pure black (#000000)</li>
+    <li class="bad">✗ Never use pure white (#ffffff) as background</li>
+    <li class="bad">✗ Avoid bright, saturated colors</li>
+  </ul>
+</div>
+
+<!-- Typography -->
+<div class="page-break">
+  <h3>Typography</h3>
+  
+  <h2>Font Stack</h2>
+  <div class="code-block">font-family: 'Georgia', 'Times New Roman', serif;</div>
+  <p style="font-style: italic; color: var(--ink-light); font-size: 10pt;">
+    Why serif? Creates calm, editorial feeling. Signals: "This is considered, not rushed."
+  </p>
+  
+  <h2>Font Sizes</h2>
+  <p style="font-size: 10pt; color: var(--ink-light); margin-bottom: 12pt;">
+    Use sparingly — these are the ONLY sizes you need
+  </p>
+  
+  <div class="size-example">
+    <code>text-xs</code>
+    <span class="size-value">9px</span>
+    <span class="size-use">Footnotes, legal text</span>
+  </div>
+  <div class="size-example">
+    <code>text-sm</code>
+    <span class="size-value">10px</span>
+    <span class="size-use">Labels, captions</span>
+  </div>
+  <div class="size-example">
+    <code>text-base</code>
+    <span class="size-value">11px</span>
+    <span class="size-use">Body text</span>
+  </div>
+  <div class="size-example">
+    <code>text-lg</code>
+    <span class="size-value">14px</span>
+    <span class="size-use">Subheadings</span>
+  </div>
+  <div class="size-example">
+    <code>text-xl</code>
+    <span class="size-value">18px</span>
+    <span class="size-use">Section titles</span>
+  </div>
+  <div class="size-example">
+    <code>text-2xl</code>
+    <span class="size-value">24px</span>
+    <span class="size-use">Page titles</span>
+  </div>
+  <div class="size-example">
+    <code>text-3xl</code>
+    <span class="size-value">32px</span>
+    <span class="size-use">Hero elements</span>
+  </div>
+  <div class="size-example">
+    <code>text-4xl</code>
+    <span class="size-value">48px</span>
+    <span class="size-use">Large scores/numbers</span>
+  </div>
+  
+  <h2>Font Weight & Style</h2>
+  <p style="margin-top: 12pt;">
+    <span style="font-weight: normal;">Normal (400)</span> — Default for all text<br>
+    <span style="font-weight: bold;">Bold (700)</span> — Use sparingly for emphasis<br>
+    <span style="font-style: italic;">Italic</span> — Use for metadata, quotes, subtle info
+  </p>
+  
+  <h2>Line Height</h2>
+  <div class="code-block">line-height: 1.6;  /* DEFAULT - use everywhere */
+line-height: 1.4;  /* Only for large text (>32px) */</div>
+</div>
+
+<!-- Spacing System -->
+<div class="page-break">
+  <h3>Spacing System</h3>
+  
+  <h2>Base Unit: 4px</h2>
+  <p>All spacing must be a multiple of 4px. This creates visual rhythm and consistency.</p>
+  
+  <div style="margin: 16pt 0;">
+    <div class="size-example">
+      <code>p-1</code>
+      <span class="size-value">4px</span>
+      <span class="size-use"></span>
+    </div>
+    <div class="size-example">
+      <code>p-2</code>
+      <span class="size-value">8px</span>
+      <span class="size-use">Within components</span>
+    </div>
+    <div class="size-example">
+      <code>p-3</code>
+      <span class="size-value">12px</span>
+      <span class="size-use">Related items</span>
+    </div>
+    <div class="size-example">
+      <code>p-4</code>
+      <span class="size-value">16px</span>
+      <span class="size-use">Between items</span>
+    </div>
+    <div class="size-example">
+      <code>p-6</code>
+      <span class="size-value">24px</span>
+      <span class="size-use">Small sections</span>
+    </div>
+    <div class="size-example">
+      <code>p-8</code>
+      <span class="size-value">32px</span>
+      <span class="size-use">Medium sections</span>
+    </div>
+    <div class="size-example">
+      <code>p-12</code>
+      <span class="size-value">48px</span>
+      <span class="size-use">Large sections</span>
+    </div>
+    <div class="size-example">
+      <code>p-16</code>
+      <span class="size-value">64px</span>
+      <span class="size-use">Major sections</span>
+    </div>
+  </div>
+</div>
+
+<!-- Interactive Elements -->
+<div class="page-break">
+  <h3>Interactive Elements</h3>
+  
+  <h2>Primary Button</h2>
+  <div class="code-block">&lt;button className="
+  w-full py-4 px-6
+  bg-[#6c7a89] hover:bg-[#5a6877]
+  text-white font-serif text-sm
+  rounded-sm transition-colors
+"&gt;
+  Button Text
+&lt;/button&gt;</div>
+  
+  <h2>Secondary Button</h2>
+  <div class="code-block">&lt;button className="
+  px-6 py-3
+  text-[#636e72] hover:text-[#2d3436]
+  font-serif text-sm
+  border border-[#e8e6e1]
+  hover:border-[#6c7a89]
+  rounded-sm transition-colors
+"&gt;
+  Button Text
+&lt;/button&gt;</div>
+  
+  <h2>Input Field</h2>
+  <div class="code-block">&lt;input className="
+  w-full px-4 py-3
+  bg-white border-2 border-[#e8e6e1]
+  focus:border-[#6c7a89]
+  rounded-sm font-serif text-base
+  transition-colors
+" /&gt;</div>
+  
+  <h2>Interaction Guidelines</h2>
+  <ul class="check-list">
+    <li class="good">✓ Use rounded-sm (2px corners only)</li>
+    <li class="good">✓ Hover states darken 10-15%</li>
+    <li class="good">✓ Transitions ≤ 200ms</li>
+    <li class="bad">✗ No drop shadows on buttons</li>
+    <li class="bad">✗ No bounce, pulse, or wiggle effects</li>
+  </ul>
+</div>
+
+<!-- Layout Patterns -->
+<div class="page-break">
+  <h3>Layout Patterns</h3>
+  
+  <h2>Max Width: 672px</h2>
+  <p>Almost always use <code>max-w-2xl</code> (672px) for content width. This is the optimal reading width.</p>
+  
+  <div class="code-block">&lt;div className="max-w-2xl mx-auto"&gt;
+  {content}
+&lt;/div&gt;</div>
+  
+  <h2>Page Structure</h2>
+  <div class="code-block">&lt;main className="min-h-screen bg-[#faf9f7] py-20 px-6"&gt;
+  &lt;div className="max-w-2xl mx-auto"&gt;
+    
+    &lt;header className="mb-16"&gt;
+      {/* Title + subtitle */}
+    &lt;/header&gt;
+    
+    &lt;div className="space-y-12"&gt;
+      {/* Content sections */}
+    &lt;/div&gt;
+    
+  &lt;/div&gt;
+&lt;/main&gt;</div>
+</div>
+
+<!-- Component Patterns -->
+<div class="page-break">
+  <h3>Component Patterns</h3>
+  
+  <h2>Content Box</h2>
+  <div class="code-block">&lt;div className="
+  p-6 bg-white
+  border border-[#e8e6e1]
+  rounded-sm
+"&gt;
+  {content}
+&lt;/div&gt;</div>
+  
+  <h2>Warning Box</h2>
+  <div class="code-block">&lt;div className="
+  p-6 rounded-sm
+  bg-[#fdf9f5]
+  border-l-2 border-l-[#d4a574]
+"&gt;
+  &lt;h3 className="font-serif font-bold mb-2"&gt;
+    Warning Title
+  &lt;/h3&gt;
+  &lt;p className="text-sm font-serif"&gt;
+    Description
+  &lt;/p&gt;
+&lt;/div&gt;</div>
+  
+  <h2>List with Checkmarks</h2>
+  <div class="code-block">&lt;div className="space-y-3"&gt;
+  {items.map(item =&gt; (
+    &lt;div className="flex gap-3"&gt;
+      &lt;span className="text-[#7fa99b]"&gt;✓&lt;/span&gt;
+      &lt;p className="text-sm font-serif"&gt;
+        {item}
+      &lt;/p&gt;
+    &lt;/div&gt;
+  ))}
+&lt;/div&gt;</div>
+</div>
+
+<!-- Branding -->
+<div class="page-break">
+  <h3>Branding</h3>
+  
+  <h2>Name Usage</h2>
+  <p>Always: <strong>beforeyousign.be</strong> (all lowercase, one word)</p>
+  
+  <ul class="check-list" style="margin-top: 12pt;">
+    <li class="bad">✗ Before You Sign</li>
+    <li class="bad">✗ BeforeYouSign.be</li>
+    <li class="bad">✗ BEFOREYOUSIGN</li>
+    <li class="good">✓ beforeyousign.be</li>
+  </ul>
+  
+  <h2>Taglines</h2>
+  <p>Pick one per context:</p>
+  <ul style="margin-top: 8pt; list-style: none; padding: 0;">
+    <li style="padding: 4pt 0;">• "voor je tekent" (NL)</li>
+    <li style="padding: 4pt 0;">• "avant de signer" (FR)</li>
+    <li style="padding: 4pt 0;">• "before you sign" (EN)</li>
+  </ul>
+  
+  <h2>Tone of Voice</h2>
+  <ul class="rule-list">
+    <li><strong>Descriptive, not prescriptive</strong> — "This clause is unusual" not "You should reject this"</li>
+    <li><strong>Calm, not urgent</strong> — "Consider reviewing" not "WARNING! ACT NOW!"</li>
+    <li><strong>Educational, not sales</strong> — "Here's what this means" not "Sign up for premium"</li>
+  </ul>
+</div>
+
+<!-- Quick Checklist -->
+<div>
+  <h3>Pre-flight Checklist</h3>
+  
+  <p>Before shipping any new feature, verify:</p>
+  
+  <h2>Colors</h2>
+  <ul class="check-list">
+    <li>□ Only uses palette colors (no random hex codes)</li>
+    <li>□ Paper background (#faf9f7) on main container</li>
+    <li>□ Text is ink (#2d3436) or ink-light (#636e72)</li>
+    <li>□ No pure black or pure white</li>
+  </ul>
+  
+  <h2>Typography</h2>
+  <ul class="check-list">
+    <li>□ Uses serif font (Georgia/Times)</li>
+    <li>□ Font sizes from the scale only</li>
+    <li>□ Line-height is 1.6 for body text</li>
+    <li>□ Headers use tracking-tight or tracking-wider</li>
+  </ul>
+  
+  <h2>Spacing</h2>
+  <ul class="check-list">
+    <li>□ All spacing in 4px increments</li>
+    <li>□ Generous whitespace between sections (48-64px)</li>
+    <li>□ Consistent vertical rhythm</li>
+    <li>□ Max-width: 672px (max-w-2xl) for content</li>
+  </ul>
+  
+  <h2>Interactions</h2>
+  <ul class="check-list">
+    <li>□ Hover states are subtle (10-15% darker)</li>
+    <li>□ Transitions are 200ms or less</li>
+    <li>□ No bounce/pulse animations</li>
+    <li>□ Buttons use rounded-sm (not rounded-full)</li>
+  </ul>
+  
+  <h2>Branding</h2>
+  <ul class="check-list">
+    <li>□ Uses "beforeyousign.be" (lowercase)</li>
+    <li>□ Tone is calm and educational</li>
+    <li>□ No aggressive CTAs or urgency</li>
+  </ul>
+  
+  <hr class="divider" style="margin-top: 32pt;">
+  
+  <p style="text-align: center; font-style: italic; color: var(--ink-light); font-size: 10pt;">
+    Remember: Every pixel should earn its place.<br>
+    When you add something, ask "Does this make it more calm?"<br>
+    If not, don't add it.
+  </p>
+</div>
+
+<footer>
+  beforeyousign.be design guide — version 1.0 — november 2025
+</footer>
+
+</body>
+</html>
